@@ -9,7 +9,7 @@ namespace PublicApi
         public Entries etalonData;
         public Exception ex;
         public string baseUrl = "https://api.publicapis.org/entries";
-        public string reportPath;
+        
         private static ThreadLocal<AppManager> app = new ThreadLocal<AppManager>();
         public AppManager()
         {

@@ -6,11 +6,11 @@ namespace PublicApi.Helpers
     public class TestBase
     {
         public AppManager app;
-
+        
         [OneTimeSetUp]
         public void SetupTest()
         {
-            app = AppManager.GetInstance();
+            app = AppManager.GetInstance();            
         }
 
         [OneTimeTearDown]

@@ -1,22 +1,48 @@
-﻿using NUnit.Framework;
+﻿using Newtonsoft.Json;
+using NUnit.Framework;
 using PublicApi.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
+using TestApiCore;
+using TestApiCore.Models;
 
 namespace PublicApi.Tests
 {
     [TestFixture]
-    class Tests : TestBase
+    public class Tests : TestBase
     {
-        [Test, Order(1)]
-        public void P_Cat_Animals_Https_true()
+        public static string[] FromJson()
         {
-            var filter = "Category=Animals&https=true";
+            var tmp = new StreamReader($"{Settings.FilePath}\\\\TestDataSimple.json").ReadToEnd();
+            var root = JsonConvert.DeserializeObject<FilterJsonSimple>(tmp);
+            return root.RawFilters.ToArray();
+        }
+
+        [Test, TestCaseSource(nameof(FromJson))]
+        public void CheckFilterResponse(string filter)
+        {
             var url = app.Cmhelp.CreateUrl(filter);
-            var fact = app.Cmhelp.GetJsonFromUrl(url);
-            if (fact == null)
-                Assert.Fail($"There is a failure during parsing the answer. Message: '{app.ex.Message}'.");
+            if (url == null)
+                Assert.Fail($"Current filter - '{filter}' - doesn't valid.");
+            var factFromApi = app.Cmhelp.GetJsonFromUrl(url);
+            if (factFromApi == null)
+            {
+                Assert.True(app.ex.Message.Contains("Bad Request"), 
+                    $"There is no 'Bad Request' in the response with wrong filter. app.ex.Message: '{app.ex.Message}'");
+                return;
+            }
+
+            Entries filteredEtalon = GetFilteredDataFromEtalon(filter);
+
+            app.Cmhelp.SortEntries(ref filteredEtalon);
+            app.Cmhelp.SortEntries(ref factFromApi);
+            CollectionAssert.AreEqual(factFromApi.entries, filteredEtalon.entries, new CollectionComparer(), 
+                $"For the filter '{filter}' fact and etalon are not the same.");
+        }
+
+        private Entries GetFilteredDataFromEtalon(string filter)
+        {
             Entries filteredEtalon = new Entries() { entries = new List<Entry>() };
             try
             {
@@ -24,21 +50,12 @@ namespace PublicApi.Tests
             }
             catch (Exception ex)
             {
-                Assert.Fail($"Unable to get data with filter '{filter}'. EtalonData.entries.Count='{app.etalonData.entries.Count}'. Message: '{ex.Message}'. StackTrace: '{ex.StackTrace}'.");
+                Assert.Fail($"Unable to get data with filter '{filter}'. " +
+                    $"EtalonData.entries.Count='{app.etalonData.entries.Count}'. " +
+                    $"Message: '{ex.Message}'. StackTrace: '{ex.StackTrace}'.");
             }
 
-            app.Cmhelp.SortEntries(ref filteredEtalon);
-            app.Cmhelp.SortEntries(ref fact);
-            CollectionAssert.AreEqual(fact.entries, filteredEtalon.entries, new CollectionComparer(), $"For the filter '{filter}' fact and etalon are not the same.");
-        }
-        [Test, Order(2)]
-        public void N_Cat_Animals_NonexistentFilter()
-        {
-            var filter = "Category=Animals&asd=true";
-            var url = app.Cmhelp.CreateUrl(filter);
-            var fact = app.Cmhelp.GetJsonFromUrl(url);
-            Assert.IsNull(fact);
-            Assert.True(app.ex.Message.Contains("Bad Request"), $"There is no 'Bad Request' in the response with wrong filter. app.ex.Message: '{app.ex.Message}'");
+            return filteredEtalon;
         }
     }
 }

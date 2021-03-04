@@ -2,14 +2,19 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Text;
 
 namespace PublicApi
 {
     public class ComnHelper : HelperBase
     {
         public ComnHelper(AppManager app) : base(app) { }
-        internal string CreateUrl(string filter) => app.baseUrl + "?" + filter;
+        internal string CreateUrl(string filter)
+        {
+            if (!filter.Contains("="))
+                return null;
+            else
+                return app.baseUrl + "?" + filter;
+        }
         internal Entries GetJsonFromUrl(string url)
         {
             Entries parsedData = new Entries() { entries = new List<Entry>() };
@@ -19,6 +24,8 @@ namespace PublicApi
                 {
                     var response = wc.DownloadString(url);
                     parsedData = JsonConvert.DeserializeObject<Entries>(response);
+                    if (parsedData.entries == null)
+                        parsedData.entries = new List<Entry>();
                 }
                 catch (Exception e)
                 {
@@ -29,7 +36,11 @@ namespace PublicApi
             }
         }
 
-        internal void SortEntries(ref Entries unsorted) => unsorted.entries.Sort((x, y) => x.Link.CompareTo(y.Link));
+        internal void SortEntries(ref Entries unsorted)
+        {
+            if (unsorted.count > 0)
+                unsorted.entries.Sort((x, y) => x.Link.CompareTo(y.Link));
+        }
 
         internal Entries FilterApply(Entries rawData, string filters)
         {
@@ -62,9 +73,15 @@ namespace PublicApi
             bool https = false;
             string value = "";
             string field;
-            if (filter.ToLower() == "https=true")
+            if (filter.ToLower().Contains("https="))
             {
-                https = true;
+                if (filter.Split('=')[1] != "true" && filter.Split('=')[1] != "false")
+                    return false;
+                if (filter.Split('=')[1] == "true")
+                    https = true;
+                else
+                    https = false;
+
                 field = "https";
             }
             else

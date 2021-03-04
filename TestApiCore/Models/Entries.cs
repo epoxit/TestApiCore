@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace PublicApi
 {
-    // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
     public class Entry
     {
         public string API { get; set; }
@@ -14,7 +11,7 @@ namespace PublicApi
         public bool HTTPS { get; set; }
         public string Cors { get; set; }
         public string Link { get; set; }
-        public string Category { get; set; }        
+        public string Category { get; set; }
     }
 
     public class Entries
@@ -37,5 +34,4 @@ namespace PublicApi
             return Compare(modelX, modelY);
         }
     }
-
 }

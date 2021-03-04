@@ -14,4 +14,13 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestDataSimple.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
