@@ -18,9 +18,10 @@
     <None Update="TestDataSimple.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestData.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="if not exist $(TargetDir)\TestResults mkdir $(TargetDir)\TestResults" />
+  </Target>
 
 </Project>
